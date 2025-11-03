@@ -1,3 +1,6 @@
+
+import axios from 'axios';
+
 // API Configuration
 // Backend base URL - can be overridden with environment variable
 //
@@ -15,7 +18,6 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:500
 
 // Helper function to build full API URL
 export const getApiUrl = (endpoint) => {
-  // Remove leading slash if present to avoid double slashes
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
   return `${API_BASE_URL}/${cleanEndpoint}`;
 };
@@ -23,11 +25,9 @@ export const getApiUrl = (endpoint) => {
 // Helper function to get full image URL
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  // If already a full URL, return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
-  // Otherwise prepend base URL
   const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
   return `${API_BASE_URL}${cleanPath}`;
 };
@@ -36,8 +36,6 @@ export const getImageUrl = (imagePath) => {
 export const API_BASE = API_BASE_URL;
 
 // Export axios instance with baseURL configured
-import axios from 'axios';
-
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
