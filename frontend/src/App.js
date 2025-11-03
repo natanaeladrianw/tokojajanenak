@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { apiClient } from './config/api';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './App.css';
@@ -45,7 +45,7 @@ function MainApp() {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/products');
+      const response = await apiClient.get('/api/products');
       setProducts(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -56,7 +56,7 @@ function MainApp() {
 
   const fetchCarousel = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/carousel');
+      const response = await apiClient.get('/api/carousel');
       setCarouselImages(response.data);
     } catch (error) {
       console.error('Error fetching carousel:', error);

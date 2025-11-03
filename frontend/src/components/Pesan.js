@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Carousel as BsCarousel } from 'bootstrap';
-import axios from 'axios';
+import { apiClient, getImageUrl } from '../config/api';
 import { useNavigate } from 'react-router-dom';
 
 const Pesan = () => {
@@ -39,7 +39,7 @@ const Pesan = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/products');
+        const res = await apiClient.get('/api/products');
         setProducts(res.data || []);
       } catch (e) {
         console.error('Gagal memuat produk:', e);
@@ -55,7 +55,7 @@ const Pesan = () => {
     const fetchWhatsappData = async () => {
       try {
         // Fetch active WhatsApp numbers for "order" button (Pesan Sekarang)
-        const numbersRes = await axios.get('http://localhost:5000/api/whatsapp/numbers/active?button_type=order');
+        const numbersRes = await apiClient.get('/api/whatsapp/numbers/active?button_type=order');
         const activeNumbers = numbersRes.data.map(n => n.phone_number);
         
         // Select random number once
@@ -65,7 +65,7 @@ const Pesan = () => {
         }
         
         // Fetch templates
-        const templatesRes = await axios.get('http://localhost:5000/api/whatsapp/templates');
+        const templatesRes = await apiClient.get('/api/whatsapp/templates');
         const templates = templatesRes.data;
         const orderTpl = templates.find(t => t.template_type === 'order');
         const contactTpl = templates.find(t => t.template_type === 'contact');
@@ -81,7 +81,7 @@ const Pesan = () => {
 
   const imageUrls = useMemo(() => {
     return (products || [])
-      .map((p) => (p && p.gambar_produk ? `http://localhost:5000${p.gambar_produk}` : null))
+      .map((p) => (p && p.gambar_produk ? getImageUrl(p.gambar_produk) : null))
       .filter(Boolean);
   }, [products]);
 
@@ -159,7 +159,7 @@ const Pesan = () => {
     if (variantsByProduct[product.id]) return; // already fetched
     (async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/varian/${product.id}`);
+        const res = await apiClient.get(`/api/varian/${product.id}`);
         setVariantsByProduct(prev => ({ ...prev, [product.id]: res.data || [] }));
       } catch (e) {
         // fail silently in UI, keep working without price
@@ -292,7 +292,7 @@ const Pesan = () => {
     // All validations passed, proceed with order
     // Fetch order numbers from database - MUST use database only, no hardcode
     try {
-      const orderNumbersRes = await axios.get('http://localhost:5000/api/whatsapp/numbers/active?button_type=order');
+      const orderNumbersRes = await apiClient.get('/api/whatsapp/numbers/active?button_type=order');
       const orderNumbers = orderNumbersRes.data.map(n => n.phone_number);
       if (orderNumbers.length > 0) {
         // Use the already selected number if it's in the order list, otherwise pick random
@@ -311,7 +311,7 @@ const Pesan = () => {
         // Save buyer data to database
         try {
           const { cartText, totalItems, totalPrice } = buildCartData();
-          await axios.post('http://localhost:5000/api/buyers', {
+          await apiClient.post('/api/buyers', {
             nama: buyer.name.trim(),
             whatsapp: buyer.whatsapp.trim(),
             kota: buyer.city.trim(),
@@ -398,7 +398,7 @@ const Pesan = () => {
 
     // Fetch contact numbers separately for "contact" button - MUST use database only
     try {
-      const contactNumbersRes = await axios.get('http://localhost:5000/api/whatsapp/numbers/active?button_type=contact');
+      const contactNumbersRes = await apiClient.get('/api/whatsapp/numbers/active?button_type=contact');
       const contactNumbers = contactNumbersRes.data.map(n => n.phone_number);
       if (contactNumbers.length > 0) {
         const randomIndex = Math.floor(Math.random() * contactNumbers.length);

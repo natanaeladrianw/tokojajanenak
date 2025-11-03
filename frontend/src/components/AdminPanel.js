@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import axios from 'axios';
+import { apiClient, getImageUrl } from '../config/api';
 import { useToast, ToastContainer } from './Toast';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -37,7 +37,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const fetchCarousel = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/carousel/all');
+      const res = await apiClient.get('/api/carousel/all');
       setCarousel(res.data);
     } catch (e) {
       console.error('Error fetching carousel:', e);
@@ -60,7 +60,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const fetchTestimonials = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/testimonials/all');
+      const res = await apiClient.get('/api/testimonials/all');
       setTestimonials(res.data);
     } catch (e) {
       console.error('Error fetching testimonials:', e);
@@ -69,7 +69,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   React.useEffect(() => { fetchTestimonials(); }, []);
   const fetchPackages = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/paket/all');
+      const res = await apiClient.get('/api/paket/all');
       setPackages(res.data);
     } catch (e) { console.error('Error fetching paket:', e); }
   };
@@ -82,7 +82,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   const [popupPreview, setPopupPreview] = useState(null);
   const fetchPopups = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/popup/all');
+      const res = await apiClient.get('/api/popup/all');
       setPopups(res.data);
     } catch (e) { console.error('Error fetching popups:', e); }
   };
@@ -96,7 +96,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       data.append('image', newPopup.image);
       if (newPopup.sort_order !== '') data.append('sort_order', newPopup.sort_order);
       data.append('is_active', newPopup.is_active ? '1' : '0');
-      await axios.post('http://localhost:5000/api/popup', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await apiClient.post('/api/popup', data, { headers: { 'Content-Type': 'multipart/form-data' } });
       setNewPopup({ image: null, sort_order: '', is_active: true });
       setPopupPreview(null);
       if (popupFileRef.current) popupFileRef.current.value='';
@@ -113,7 +113,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       if (item._newFile) data.append('image', item._newFile);
       if (item.sort_order !== undefined) data.append('sort_order', item.sort_order);
       data.append('is_active', item.is_active ? '1' : '0');
-      await axios.put(`http://localhost:5000/api/popup/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await apiClient.put(`/api/popup/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
       await fetchPopups();
       showToast('Popup berhasil diupdate!', 'success');
     } catch (e) {
@@ -137,7 +137,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       data.append('image', newTestimonial.image);
       if (newTestimonial.sort_order !== '') data.append('sort_order', newTestimonial.sort_order);
       data.append('is_active', newTestimonial.is_active ? '1' : '0');
-      await axios.post('http://localhost:5000/api/testimonials', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await apiClient.post('/api/testimonials', data, { headers: { 'Content-Type': 'multipart/form-data' } });
       setNewTestimonial({ image: null, sort_order: '', is_active: true });
       setTestiPreview(null);
       if (testiFileInputRef.current) testiFileInputRef.current.value = '';
@@ -157,7 +157,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       if (item._newFile) data.append('image', item._newFile);
       if (item.sort_order !== undefined) data.append('sort_order', item.sort_order);
       data.append('is_active', item.is_active ? '1' : '0');
-      await axios.put(`http://localhost:5000/api/testimonials/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await apiClient.put(`/api/testimonials/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
       await fetchTestimonials();
       showToast('Testimoni berhasil diupdate!', 'success');
     } catch (e) {
@@ -182,7 +182,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       data.append('image', newCarousel.image);
       if (newCarousel.sort_order !== '') data.append('sort_order', newCarousel.sort_order);
       data.append('is_active', newCarousel.is_active ? '1' : '0');
-      await axios.post('http://localhost:5000/api/carousel', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await apiClient.post('/api/carousel', data, { headers: { 'Content-Type': 'multipart/form-data' } });
       
       // Reset form
       setNewCarousel({ image: null, sort_order: '', is_active: true });
@@ -210,7 +210,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       if (item._newFile) data.append('image', item._newFile);
       if (item.sort_order !== undefined) data.append('sort_order', item.sort_order);
       data.append('is_active', item.is_active ? '1' : '0');
-      await axios.put(`http://localhost:5000/api/carousel/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await apiClient.put(`/api/carousel/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
       await fetchCarousel();
       onUpdate();
       showToast('Gambar slider berhasil diupdate!', 'success');
@@ -231,7 +231,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeleteCarousel = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/carousel/${deleteModal.id}`);
+      await apiClient.delete(`/api/carousel/${deleteModal.id}`);
       await fetchCarousel();
       onUpdate();
       showToast('Gambar slider berhasil dihapus!', 'success');
@@ -245,7 +245,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeleteTesti = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/testimonials/${deleteModal.id}`);
+      await apiClient.delete(`/api/testimonials/${deleteModal.id}`);
       await fetchTestimonials();
       showToast('Gambar testimoni berhasil dihapus!', 'success');
     } catch (e) {
@@ -258,7 +258,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeletePopup = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/popup/${deleteModal.id}`);
+      await apiClient.delete(`/api/popup/${deleteModal.id}`);
       await fetchPopups();
       showToast('Gambar popup berhasil dihapus!', 'success');
     } catch (e) {
@@ -290,7 +290,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       data.append('active_tiktok', newPackage.active_tiktok ? '1' : '0');
       if (newPackage.sort_order !== '') data.append('sort_order', newPackage.sort_order);
       data.append('is_active', newPackage.is_active ? '1' : '0');
-      await axios.post('http://localhost:5000/api/paket', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await apiClient.post('/api/paket', data, { headers: { 'Content-Type': 'multipart/form-data' } });
       setNewPackage({ image: null, tipe: '', link_shopee: '', link_tiktok: '', subtitle_wa: '', subtitle_shopee: '', subtitle_tiktok: '', active_wa: true, active_shopee: true, active_tiktok: true, sort_order: '', is_active: true });
       setPaketPreview(null);
       if (paketFileInputRef.current) paketFileInputRef.current.value = '';
@@ -317,7 +317,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       if (item.active_tiktok !== undefined) data.append('active_tiktok', item.active_tiktok ? '1' : '0');
       if (item.sort_order !== undefined) data.append('sort_order', item.sort_order);
       data.append('is_active', item.is_active ? '1' : '0');
-      await axios.put(`http://localhost:5000/api/paket/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await apiClient.put(`/api/paket/${item.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
       await fetchPackages();
       showToast('Paket berhasil diupdate!', 'success');
     } catch (e) {
@@ -332,7 +332,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeletePaket = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/paket/${deleteModal.id}`);
+      await apiClient.delete(`/api/paket/${deleteModal.id}`);
       await fetchPackages();
       showToast('Paket berhasil dihapus!', 'success');
     } catch (e) {
@@ -370,7 +370,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   // Fetch WhatsApp numbers and templates
   const fetchWhatsappNumbers = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/whatsapp/numbers');
+      const res = await apiClient.get('/api/whatsapp/numbers');
       setWhatsappNumbers(res.data);
     } catch (e) {
       console.error('Error fetching WhatsApp numbers:', e);
@@ -380,7 +380,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const fetchMessageTemplates = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/whatsapp/templates');
+      const res = await apiClient.get('/api/whatsapp/templates');
       setMessageTemplates(res.data);
     } catch (e) {
       console.error('Error fetching message templates:', e);
@@ -400,7 +400,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   // Fetch Buyers data
   const fetchBuyers = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/buyers');
+      const res = await apiClient.get('/api/buyers');
       setBuyers(res.data || []);
     } catch (e) {
       console.error('Error fetching buyers:', e);
@@ -419,7 +419,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   // Fetch Resellers data
   const fetchResellers = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/resellers');
+      const res = await apiClient.get('/api/resellers');
       setResellers(res.data || []);
     } catch (e) {
       console.error('Error fetching resellers:', e);
@@ -442,7 +442,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeleteReseller = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/resellers/${deleteModal.id}`);
+      await apiClient.delete(`/api/resellers/${deleteModal.id}`);
       await fetchResellers();
       showToast('Data reseller berhasil dihapus!', 'success');
     } catch (e) {
@@ -460,7 +460,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeleteBuyer = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/buyers/${deleteModal.id}`);
+      await apiClient.delete(`/api/buyers/${deleteModal.id}`);
       await fetchBuyers();
       showToast('Data pembeli berhasil dihapus!', 'success');
     } catch (e) {
@@ -483,7 +483,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       return;
     }
     try {
-      await axios.post('http://localhost:5000/api/whatsapp/numbers', {
+      await apiClient.post('/api/whatsapp/numbers', {
         phone_number: newWhatsappNumber.phone_number,
         button_type: newWhatsappNumber.button_type,
         is_active: newWhatsappNumber.is_active ? 1 : 0
@@ -503,7 +503,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       if (updates.button_type && typeof updates.button_type === 'string') {
         updates.button_type = updates.button_type.split(',').map(t => t.trim());
       }
-      await axios.put(`http://localhost:5000/api/whatsapp/numbers/${id}`, updates);
+      await apiClient.put(`/api/whatsapp/numbers/${id}`, updates);
       await fetchWhatsappNumbers();
       setEditingWhatsappNumber(null);
       showToast('Nomor WhatsApp berhasil diupdate!', 'success');
@@ -519,7 +519,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeleteWhatsappNumber = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/whatsapp/numbers/${deleteModal.id}`);
+      await apiClient.delete(`/api/whatsapp/numbers/${deleteModal.id}`);
       await fetchWhatsappNumbers();
       showToast('Nomor WhatsApp berhasil dihapus!', 'success');
     } catch (e) {
@@ -533,7 +533,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   // Message Template CRUD handlers
   const handleUpdateTemplate = async (type, format) => {
     try {
-      await axios.put(`http://localhost:5000/api/whatsapp/templates/${type}`, {
+      await apiClient.put(`/api/whatsapp/templates/${type}`, {
         template_format: format
       });
       await fetchMessageTemplates();
@@ -563,7 +563,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   });
   const fetchSettings = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/settings', { params: { keys: 'cta_whatsapp,cta_shopee,cta_tiktok,cta_reseller,cta_shopee_link,cta_tiktok_link' }});
+      const res = await apiClient.get('/api/settings', { params: { keys: 'cta_whatsapp,cta_shopee,cta_tiktok,cta_reseller,cta_shopee_link,cta_tiktok_link' }});
       const map = { cta_whatsapp: '', cta_shopee: '', cta_tiktok: '', cta_reseller: '', cta_shopee_link: '', cta_tiktok_link: '' };
       (res.data || []).forEach(r => { map[r.key] = r.value ?? ''; });
       setSettings(map);
@@ -573,13 +573,13 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   };
   React.useEffect(() => { fetchSettings(); }, []);
   const saveSetting = async (key, value) => {
-    await axios.put('http://localhost:5000/api/settings', { key, value });
+    await apiClient.put('/api/settings', { key, value });
   };
 
   // Fetch variants for a product
   const fetchVariants = async (produkId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/varian/${produkId}`);
+      const res = await apiClient.get(`/api/varian/${produkId}`);
       setVariants(res.data);
     } catch (error) {
       console.error('Error fetching variants:', error);
@@ -590,7 +590,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
   // Fetch details for a product
   const fetchDetails = async (produkId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/detail/${produkId}`);
+      const res = await apiClient.get(`/api/detail/${produkId}`);
       setDetails(res.data);
     } catch (error) {
       console.error('Error fetching details:', error);
@@ -631,13 +631,13 @@ const AdminPanel = ({ products, onUpdate, user }) => {
           showToast('Tidak ada yang diperbarui. Ubah nama varian atau harga.', 'error');
           return;
         }
-        await axios.put(`http://localhost:5000/api/varian/${editingVariant.id}`, {
+        await apiClient.put(`/api/varian/${editingVariant.id}`, {
           nama_varian: newName,
           harga: newPrice
         });
         showToast('Varian berhasil diupdate!', 'success');
       } else {
-        await axios.post('http://localhost:5000/api/varian', {
+        await apiClient.post('/api/varian', {
           nama_varian: variantFormData.nama_varian.trim(),
           harga: variantFormData.harga === '' ? 0 : parseRupiahToInt(variantFormData.harga),
           produk_id: selectedVariantProductId
@@ -665,7 +665,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeleteVariant = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/varian/${deleteModal.id}`);
+      await apiClient.delete(`/api/varian/${deleteModal.id}`);
       await fetchVariants(selectedVariantProductId);
       showToast('Varian berhasil dihapus!', 'success');
     } catch (error) {
@@ -704,12 +704,12 @@ const AdminPanel = ({ products, onUpdate, user }) => {
           showToast('Tidak ada yang diperbarui. Silakan ubah keterangan atau upload gambar baru.', 'error');
           return;
         }
-        await axios.put(`http://localhost:5000/api/detail/${editingDetail.id}`, data, {
+        await apiClient.put(`/api/detail/${editingDetail.id}`, data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         showToast('Detail produk berhasil diupdate!', 'success');
       } else {
-        await axios.post('http://localhost:5000/api/detail', data, {
+        await apiClient.post('/api/detail', data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         showToast('Detail produk berhasil ditambahkan!', 'success');
@@ -739,7 +739,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeleteDetail = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/detail/${deleteModal.id}`);
+      await apiClient.delete(`/api/detail/${deleteModal.id}`);
       await fetchDetails(selectedDetailProductId);
       showToast('Detail produk berhasil dihapus!', 'success');
     } catch (error) {
@@ -811,12 +811,12 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       data.append('varian', JSON.stringify(formData.varian || []));
 
       if (editingProduct) {
-        await axios.put(`http://localhost:5000/api/products/${editingProduct.id}`, data, {
+        await apiClient.put(`/api/products/${editingProduct.id}`, data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         showToast('Produk berhasil diupdate!', 'success');
       } else {
-        await axios.post('http://localhost:5000/api/products', data, {
+        await apiClient.post('/api/products', data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         showToast('Produk berhasil ditambahkan!', 'success');
@@ -845,7 +845,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
 
   const confirmDeleteProduct = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/products/${deleteModal.id}`);
+      await apiClient.delete(`/api/products/${deleteModal.id}`);
         onUpdate();
       showToast('Produk berhasil dihapus!', 'success');
       } catch (error) {
@@ -1296,7 +1296,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                   <div className="mt-2">
                     <label className="form-label small text-muted">Gambar saat ini:</label>
                     <img 
-                      src={`http://localhost:5000${editingProduct.gambar_produk}`} 
+                      src={getImageUrl(editingProduct.gambar_produk)} 
                       alt="Current" 
                       style={{
                         maxWidth: '200px',
@@ -1543,7 +1543,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
             <div key={c.id} className="col-md-4 mb-3">
               <div className="card h-100 border-0 shadow-sm">
                 <img 
-                  src={`http://localhost:5000${c.image_path}`} 
+                  src={getImageUrl(c.image_path)} 
                   className="card-img-top" 
                   alt={`carousel-${c.id}`} 
                   style={{maxHeight:'200px', objectFit:'cover', borderRadius: '8px 8px 0 0'}} 
@@ -1721,7 +1721,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
               testimonials.map((t) => (
                 <div key={t.id} className="col-md-4 mb-3">
                   <div className="card h-100 border-0 shadow-sm">
-                    <img src={`http://localhost:5000${t.image_path}`} className="card-img-top" alt={`testi-${t.id}`} style={{maxHeight:'220px', objectFit:'cover', borderRadius:'8px 8px 0 0'}} />
+                    <img src={getImageUrl(t.image_path)} className="card-img-top" alt={`testi-${t.id}`} style={{maxHeight:'220px', objectFit:'cover', borderRadius:'8px 8px 0 0'}} />
                     <div className="card-body">
                       <div className="mb-2">
                         <label className="form-label fw-bold" style={{color:'#6d2316'}}>Urutan</label>
@@ -1832,7 +1832,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
               packages.map((p) => (
                 <div key={p.id} className="col-md-4 mb-3">
                   <div className="card h-100 border-0 shadow-sm">
-                    <img src={`http://localhost:5000${p.image_path}`} className="card-img-top" alt={`paket-${p.id}`} style={{maxHeight:'220px', objectFit:'cover', borderRadius:'8px 8px 0 0'}} />
+                    <img src={getImageUrl(p.image_path)} className="card-img-top" alt={`paket-${p.id}`} style={{maxHeight:'220px', objectFit:'cover', borderRadius:'8px 8px 0 0'}} />
                     <div className="card-body">
                       <div className="mb-2">
                         <label className="form-label fw-bold" style={{color:'#6d2316'}}>Tipe Paket</label>
@@ -1935,7 +1935,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
               popups.map((p) => (
                 <div key={p.id} className="col-md-4 mb-3">
                   <div className="card h-100 border-0 shadow-sm">
-                    <img src={`http://localhost:5000${p.image_path}`} alt={`popup-${p.id}`} className="card-img-top" style={{maxHeight:'220px', objectFit:'cover', borderRadius:'8px 8px 0 0'}} />
+                    <img src={getImageUrl(p.image_path)} alt={`popup-${p.id}`} className="card-img-top" style={{maxHeight:'220px', objectFit:'cover', borderRadius:'8px 8px 0 0'}} />
                     <div className="card-body">
                       <div className="mb-2">
                         <label className="form-label fw-bold" style={{color:'#6d2316'}}>Urutan</label>
@@ -2302,7 +2302,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                           <div className="mt-2">
                             <label className="form-label small text-muted">Gambar saat ini:</label>
                             <img
-                              src={`http://localhost:5000${editingDetail.gambar}`}
+                              src={getImageUrl(editingDetail.gambar)}
                               alt="Current"
                               style={{
                                 maxWidth: '200px',
@@ -2373,7 +2373,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                         <div key={detail.id} className="col-md-6 mb-3">
                           <div className="card border-0 shadow-sm h-100">
                             <img
-                              src={`http://localhost:5000${detail.gambar}`}
+                              src={getImageUrl(detail.gambar)}
                               alt="Detail"
                               className="card-img-top"
                               style={{objectFit: 'cover', height: '160px'}}

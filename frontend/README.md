@@ -2,6 +2,44 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Backend API Configuration
+
+The frontend uses a centralized API configuration located in `src/config/api.js`. 
+
+### Configuring Backend URL
+
+To configure the backend API base URL:
+
+1. Create a `.env` file in the `frontend` root directory (if it doesn't exist)
+2. Add the following line:
+   ```
+   REACT_APP_API_BASE_URL=http://your-backend-url:port
+   ```
+3. Restart the development server (`npm start`)
+
+**Examples:**
+- Development: `REACT_APP_API_BASE_URL=http://localhost:5000`
+- Production: `REACT_APP_API_BASE_URL=https://api.yourdomain.com`
+
+**Default:** If not configured, the app defaults to `http://localhost:5000`
+
+### Usage in Components
+
+All API calls should use the `apiClient` from the config:
+
+```javascript
+import { apiClient, getImageUrl } from '../config/api';
+
+// For API calls
+const response = await apiClient.get('/api/products');
+await apiClient.post('/api/buyers', data);
+
+// For image URLs
+const imageSrc = getImageUrl(product.gambar_produk);
+```
+
+See `src/config/api.js` for more details.
+
 ## Available Scripts
 
 In the project directory, you can run:

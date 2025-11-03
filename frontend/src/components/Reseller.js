@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { apiClient } from '../config/api';
 
 const Reseller = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const Reseller = () => {
     const fetchWhatsappData = async () => {
       try {
         // Fetch active WhatsApp numbers for "reseller" button (DAFTAR SEKARANG)
-        const numbersRes = await axios.get('http://localhost:5000/api/whatsapp/numbers/active?button_type=reseller');
+        const numbersRes = await apiClient.get('/api/whatsapp/numbers/active?button_type=reseller');
         const activeNumbers = numbersRes.data.map(n => n.phone_number);
         
         // Select random number once
@@ -31,7 +31,7 @@ const Reseller = () => {
         }
         
         // Fetch templates
-        const templatesRes = await axios.get('http://localhost:5000/api/whatsapp/templates');
+        const templatesRes = await apiClient.get('/api/whatsapp/templates');
         const templates = templatesRes.data;
         const resellerTpl = templates.find(t => t.template_type === 'reseller');
         if (resellerTpl) setResellerTemplate(resellerTpl.template_format);
@@ -162,7 +162,7 @@ const Reseller = () => {
     // All validations passed, proceed with reseller registration
     // Fetch reseller numbers from database - MUST use database only, no hardcode
     try {
-      const resellerNumbersRes = await axios.get('http://localhost:5000/api/whatsapp/numbers/active?button_type=reseller');
+      const resellerNumbersRes = await apiClient.get('/api/whatsapp/numbers/active?button_type=reseller');
       const resellerNumbers = resellerNumbersRes.data.map(n => n.phone_number);
       if (resellerNumbers.length > 0) {
         // Use the already selected number if it's in the reseller list, otherwise pick random
@@ -180,7 +180,7 @@ const Reseller = () => {
         }
         // Save reseller data to database
         try {
-          await axios.post('http://localhost:5000/api/resellers', {
+          await apiClient.post('/api/resellers', {
             nama: form.name.trim(),
             whatsapp: form.wa.trim(),
             kota: form.city.trim(),

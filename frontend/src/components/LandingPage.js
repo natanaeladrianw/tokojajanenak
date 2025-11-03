@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Carousel as BsCarousel } from 'bootstrap';
-import axios from 'axios';
+import { apiClient, getImageUrl } from '../config/api';
 
 const LandingPage = ({ products, loading, carouselImages = [] }) => {
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/testimonials');
+        const res = await apiClient.get('/api/testimonials');
         setTestimonials(res.data || []);
       } catch (e) {
         setTestimonials([]);
@@ -104,7 +104,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/paket');
+        const res = await apiClient.get('/api/paket');
         setPackages(res.data || []);
       } catch (e) {
         setPackages([]);
@@ -117,7 +117,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
     const fetchPackageWhatsappData = async () => {
       try {
         // Fetch template
-        const templatesRes = await axios.get('http://localhost:5000/api/whatsapp/templates');
+        const templatesRes = await apiClient.get('/api/whatsapp/templates');
         const templates = templatesRes.data;
         const packageTpl = templates.find(t => t.template_type === 'package');
         if (packageTpl) setPackageTemplate(packageTpl.template_format);
@@ -132,7 +132,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/popup');
+        const res = await apiClient.get('/api/popup');
         const imgs = res.data || [];
         setPopupImages(imgs);
         setShowPopup(imgs.length > 0);
@@ -225,7 +225,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/settings', {
+        const res = await apiClient.get('/api/settings', {
           params: { keys: 'cta_whatsapp,cta_shopee,cta_tiktok,cta_reseller,cta_shopee_link,cta_tiktok_link,hero_title_prefix,hero_title_brand,hero_title_suffix,hero_subtitle,background_color' }
         });
         const map = {};
@@ -272,7 +272,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
 
     // Fetch package numbers from database - MUST use database only, no hardcode
     try {
-      const packageNumbersRes = await axios.get('http://localhost:5000/api/whatsapp/numbers/active?button_type=package');
+      const packageNumbersRes = await apiClient.get('/api/whatsapp/numbers/active?button_type=package');
       const packageNumbers = packageNumbersRes.data.map(n => n.phone_number);
       if (packageNumbers.length > 0) {
         const randomIndex = Math.floor(Math.random() * packageNumbers.length);
@@ -379,7 +379,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
   // Function to fetch product details
   const fetchProductDetails = async (productId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/detail/${productId}`);
+      const response = await apiClient.get(`/api/detail/${productId}`);
       setProductDetails(response.data);
     } catch (error) {
       console.error('Error fetching product details:', error);
@@ -736,7 +736,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
                     {(carouselImages.slice(0,5)).map((item, idx) => (
                       <div key={item.id} className={`carousel-item ${idx === 0 ? 'active' : ''}`}>
                         <img 
-                          src={`http://localhost:5000${item.image_path}`} 
+                          src={getImageUrl(item.image_path)} 
                           className="d-block w-100" 
                           alt={`slide-${item.id}`} 
                           style={{maxHeight: '320px', objectFit: 'cover'}} 
@@ -831,7 +831,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
                       <div className="card-body text-center p-0" style={{backgroundColor: '#f8f9fa', overflow: 'hidden'}}>
                         {product.gambar_produk ? (
                           <img 
-                            src={`http://localhost:5000${product.gambar_produk}`} 
+                            src={getImageUrl(product.gambar_produk)} 
                             alt={product.nama_produk}
                             className="w-100"
                             style={{width: '100%', height: 'auto', display: 'block'}}
@@ -911,7 +911,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
                     <div className="col-6 col-md-4 mb-3 mb-md-4" key={t.id}>
                       <div className="card border-0 shadow-sm h-100" style={{cursor: 'pointer', position: 'relative', overflow: 'hidden'}} onClick={() => openTestiModal(idx)}>
                         <img 
-                          src={`http://localhost:5000${t.image_path}`} 
+                          src={getImageUrl(t.image_path)} 
                           alt={`testimoni-${t.id}`} 
                           className="card-img-top"
                           style={{
@@ -983,7 +983,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
             onClick={(e)=> e.stopPropagation()}
           >
             <img 
-              src={`http://localhost:5000${testimonials[activeTestiIndex].image_path}`}
+              src={getImageUrl(testimonials[activeTestiIndex].image_path)}
               alt={`testi-full-${testimonials[activeTestiIndex].id}`}
               style={{maxWidth:'90vw', maxHeight:'90vh', objectFit:'contain', borderRadius:'8px'}}
               draggable={false}
@@ -1026,7 +1026,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
                 onTouchMove={(e)=>{ const t=e.touches[0]; moveDrag(t.clientX); }}
                 onTouchEnd={endDrag}
               >
-                <img src={`http://localhost:5000${popupImages[popupIndex].image_path}`} alt={`popup-${popupIndex}`} style={{userSelect:'none', maxWidth:'100%', maxHeight:'80vh', objectFit:'contain', background:'transparent', borderRadius:'12px', display:'block'}} />
+                <img src={getImageUrl(popupImages[popupIndex].image_path)} alt={`popup-${popupIndex}`} style={{userSelect:'none', maxWidth:'100%', maxHeight:'80vh', objectFit:'contain', background:'transparent', borderRadius:'12px', display:'block'}} />
               </div>
             </div>
           </div>
@@ -1063,7 +1063,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
                       <span style={{fontSize: '18px', color: '#6D2316'}}>{p.tipe}</span>
                     </div>
                     <img
-                      src={`http://localhost:5000${p.image_path}`}
+                      src={getImageUrl(p.image_path)}
                       alt={p.tipe}
                       className="card-img-top"
                       style={{objectFit:'cover', height:'220px', borderRadius: '0'}}
@@ -1255,7 +1255,7 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
                       <div key={detail.id || index} className="col-md-6 mb-4">
                         <div className="card border-0 shadow-sm h-100">
                           <img
-                            src={`http://localhost:5000${detail.gambar}`}
+                            src={getImageUrl(detail.gambar)}
                             alt={`Detail ${index + 1}`}
                             className="card-img-top"
                             style={{
