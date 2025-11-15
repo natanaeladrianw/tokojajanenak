@@ -53,6 +53,26 @@ router.post('/varian', async (req, res) => {
       return res.status(400).json({ error: 'Harga tidak valid' });
     }
     
+    // Handle harga_coret (strikethrough price)
+    let { harga_coret } = req.body;
+    let parsedHargaCoret = null;
+    if (harga_coret !== undefined && harga_coret !== null && harga_coret !== '') {
+      parsedHargaCoret = Number.parseInt(harga_coret, 10);
+      if (Number.isNaN(parsedHargaCoret) || parsedHargaCoret < 0) {
+        return res.status(400).json({ error: 'Harga coret tidak valid' });
+      }
+    }
+    
+    // Handle diskon (discount percentage)
+    let { diskon } = req.body;
+    let parsedDiskon = null;
+    if (diskon !== undefined && diskon !== null && diskon !== '') {
+      parsedDiskon = Number.parseFloat(diskon, 10);
+      if (Number.isNaN(parsedDiskon) || parsedDiskon < 0 || parsedDiskon > 100) {
+        return res.status(400).json({ error: 'Diskon tidak valid (harus antara 0-100)' });
+      }
+    }
+    
     if (!nama_varian || nama_varian.trim() === '') {
       return res.status(400).json({ error: 'Nama varian tidak boleh kosong' });
     }
@@ -62,8 +82,8 @@ router.post('/varian', async (req, res) => {
     }
 
     const [result] = await pool.execute(
-      'INSERT INTO varian (nama_varian, produk_id, harga) VALUES (?, ?, ?)',
-      [nama_varian.trim(), produk_id, parsedHarga]
+      'INSERT INTO varian (nama_varian, produk_id, harga, harga_coret, diskon) VALUES (?, ?, ?, ?, ?)',
+      [nama_varian.trim(), produk_id, parsedHarga, parsedHargaCoret, parsedDiskon]
     );
 
     res.json({ success: true, id: result.insertId });
@@ -83,22 +103,73 @@ router.put('/varian/:id', async (req, res) => {
     if (!nama_varian || nama_varian.trim() === '') {
       return res.status(400).json({ error: 'Nama varian tidak boleh kosong' });
     }
+    
+    // Handle harga
+    let parsedHarga = null;
     if (harga !== undefined) {
-      if (harga === null || harga === '') harga = 0;
-      const parsedHarga = Number.parseInt(harga, 10);
-      if (Number.isNaN(parsedHarga) || parsedHarga < 0) {
-        return res.status(400).json({ error: 'Harga tidak valid' });
+      if (harga === null || harga === '') {
+        parsedHarga = 0;
+      } else {
+        parsedHarga = Number.parseInt(harga, 10);
+        if (Number.isNaN(parsedHarga) || parsedHarga < 0) {
+          return res.status(400).json({ error: 'Harga tidak valid' });
+        }
       }
-      await pool.execute(
-        'UPDATE varian SET nama_varian = ?, harga = ? WHERE id = ?',
-        [nama_varian.trim(), parsedHarga, id]
-      );
-    } else {
-      await pool.execute(
-        'UPDATE varian SET nama_varian = ? WHERE id = ?',
-        [nama_varian.trim(), id]
-      );
     }
+    
+    // Handle harga_coret (strikethrough price)
+    let { harga_coret } = req.body;
+    let parsedHargaCoret = null;
+    if (harga_coret !== undefined) {
+      if (harga_coret === null || harga_coret === '') {
+        parsedHargaCoret = null;
+      } else {
+        parsedHargaCoret = Number.parseInt(harga_coret, 10);
+        if (Number.isNaN(parsedHargaCoret) || parsedHargaCoret < 0) {
+          return res.status(400).json({ error: 'Harga coret tidak valid' });
+        }
+      }
+    }
+    
+    // Handle diskon (discount percentage)
+    let { diskon } = req.body;
+    let parsedDiskon = null;
+    if (diskon !== undefined) {
+      if (diskon === null || diskon === '') {
+        parsedDiskon = null;
+      } else {
+        parsedDiskon = Number.parseFloat(diskon, 10);
+        if (Number.isNaN(parsedDiskon) || parsedDiskon < 0 || parsedDiskon > 100) {
+          return res.status(400).json({ error: 'Diskon tidak valid (harus antara 0-100)' });
+        }
+      }
+    }
+    
+    // Build update query dynamically
+    const updates = ['nama_varian = ?'];
+    const values = [nama_varian.trim()];
+    
+    if (parsedHarga !== null) {
+      updates.push('harga = ?');
+      values.push(parsedHarga);
+    }
+    
+    if (harga_coret !== undefined) {
+      updates.push('harga_coret = ?');
+      values.push(parsedHargaCoret);
+    }
+    
+    if (diskon !== undefined) {
+      updates.push('diskon = ?');
+      values.push(parsedDiskon);
+    }
+    
+    values.push(id);
+    
+    await pool.execute(
+      `UPDATE varian SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
 
     res.json({ success: true });
   } catch (error) {

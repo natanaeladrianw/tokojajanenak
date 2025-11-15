@@ -545,7 +545,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
     }
   };
 
-  const [variantFormData, setVariantFormData] = useState({ nama_varian: '', harga: '' });
+  const [variantFormData, setVariantFormData] = useState({ nama_varian: '', harga: '', harga_coret: '', diskon: '' });
   const [showDetailForm, setShowDetailForm] = useState(false);
   const [editingDetail, setEditingDetail] = useState(null);
   const [detailFormData, setDetailFormData] = useState({ keterangan: '', gambar: null });
@@ -620,26 +620,44 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       showToast('Harga tidak valid!', 'error');
       return;
     }
+    // Validasi harga_coret bila diisi
+    if (variantFormData.harga_coret !== '' && (Number.isNaN(parseRupiahToInt(variantFormData.harga_coret)) || parseRupiahToInt(variantFormData.harga_coret) < 0)) {
+      showToast('Harga coret tidak valid!', 'error');
+      return;
+    }
+    // Validasi diskon bila diisi
+    if (variantFormData.diskon !== '' && (Number.isNaN(Number.parseFloat(variantFormData.diskon)) || Number.parseFloat(variantFormData.diskon) < 0 || Number.parseFloat(variantFormData.diskon) > 100)) {
+      showToast('Diskon tidak valid! (harus antara 0-100)', 'error');
+      return;
+    }
     try {
       if (editingVariant) {
         // No-change validation for variant update
         const newName = variantFormData.nama_varian.trim();
         const currentName = (editingVariant.nama_varian || '').trim();
         const newPrice = variantFormData.harga === '' ? (editingVariant.harga ?? 0) : parseRupiahToInt(variantFormData.harga);
+        const newHargaCoret = variantFormData.harga_coret === '' ? null : parseRupiahToInt(variantFormData.harga_coret);
+        const newDiskon = variantFormData.diskon === '' ? null : Number.parseFloat(variantFormData.diskon);
         const priceUnchanged = (editingVariant.harga ?? 0) === (variantFormData.harga === '' ? (editingVariant.harga ?? 0) : parseRupiahToInt(variantFormData.harga));
-        if (newName === currentName && priceUnchanged) {
-          showToast('Tidak ada yang diperbarui. Ubah nama varian atau harga.', 'error');
+        const hargaCoretUnchanged = (editingVariant.harga_coret ?? null) === newHargaCoret;
+        const diskonUnchanged = (editingVariant.diskon ?? null) === newDiskon;
+        if (newName === currentName && priceUnchanged && hargaCoretUnchanged && diskonUnchanged) {
+          showToast('Tidak ada yang diperbarui. Ubah nama varian, harga, harga coret, atau diskon.', 'error');
           return;
         }
         await apiClient.put(`/api/varian/${editingVariant.id}`, {
           nama_varian: newName,
-          harga: newPrice
+          harga: newPrice,
+          harga_coret: newHargaCoret,
+          diskon: newDiskon
         });
         showToast('Varian berhasil diupdate!', 'success');
       } else {
         await apiClient.post('/api/varian', {
           nama_varian: variantFormData.nama_varian.trim(),
           harga: variantFormData.harga === '' ? 0 : parseRupiahToInt(variantFormData.harga),
+          harga_coret: variantFormData.harga_coret === '' ? null : parseRupiahToInt(variantFormData.harga_coret),
+          diskon: variantFormData.diskon === '' ? null : Number.parseFloat(variantFormData.diskon),
           produk_id: selectedVariantProductId
         });
         showToast('Varian berhasil ditambahkan!', 'success');
@@ -647,7 +665,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
       await fetchVariants(selectedVariantProductId);
       setShowVariantForm(false);
       setEditingVariant(null);
-      setVariantFormData({ nama_varian: '', harga: '' });
+      setVariantFormData({ nama_varian: '', harga: '', harga_coret: '', diskon: '' });
     } catch (error) {
       console.error('Error saving variant:', error);
       showToast('Gagal menyimpan varian: ' + (error.response?.data?.error || error.message), 'error');
@@ -1979,7 +1997,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                 setSelectedVariantProductId(productId);
                 setShowVariantForm(false);
                 setEditingVariant(null);
-                setVariantFormData({ nama_varian: '', harga: '' });
+                setVariantFormData({ nama_varian: '', harga: '', harga_coret: '', diskon: '' });
               }}
               style={{borderRadius: '8px', maxWidth: '400px'}}
             >
@@ -2002,7 +2020,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                         onClick={() => {
                           setShowVariantForm(true);
                           setEditingVariant(null);
-                          setVariantFormData({ nama_varian: '' });
+                          setVariantFormData({ nama_varian: '', harga: '', harga_coret: '', diskon: '' });
                         }}
                         style={{backgroundColor: 'white', color: '#6d2316', border: 'none', borderRadius: '8px'}}
                       >
@@ -2037,17 +2055,45 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                             required
                             style={{borderRadius: '8px'}}
                           />
-                          <div className="mt-2 d-flex align-items-center" style={{gap:'8px'}}>
-                            <span className="text-muted" style={{minWidth:'48px'}}>Harga</span>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={variantFormData.harga}
-                              onChange={(e) => setVariantFormData(prev => ({ ...prev, harga: formatRupiahFromString(e.target.value) }))}
-                              placeholder="Rp 0"
-                              inputMode="numeric"
-                              style={{borderRadius: '8px'}}
-                            />
+                          <div className="mt-2 d-flex flex-column" style={{gap:'8px'}}>
+                            <div className="d-flex align-items-center" style={{gap:'8px'}}>
+                              <span className="text-muted" style={{minWidth:'80px'}}>Harga</span>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={variantFormData.harga}
+                                onChange={(e) => setVariantFormData(prev => ({ ...prev, harga: formatRupiahFromString(e.target.value) }))}
+                                placeholder="Rp 0"
+                                inputMode="numeric"
+                                style={{borderRadius: '8px'}}
+                              />
+                            </div>
+                            <div className="d-flex align-items-center" style={{gap:'8px'}}>
+                              <span className="text-muted" style={{minWidth:'80px'}}>Harga Coret</span>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={variantFormData.harga_coret}
+                                onChange={(e) => setVariantFormData(prev => ({ ...prev, harga_coret: formatRupiahFromString(e.target.value) }))}
+                                placeholder="Rp 0 (opsional)"
+                                inputMode="numeric"
+                                style={{borderRadius: '8px'}}
+                              />
+                            </div>
+                            <div className="d-flex align-items-center" style={{gap:'8px'}}>
+                              <span className="text-muted" style={{minWidth:'80px'}}>Diskon (%)</span>
+                              <input
+                                type="number"
+                                className="form-control"
+                                value={variantFormData.diskon}
+                                onChange={(e) => setVariantFormData(prev => ({ ...prev, diskon: e.target.value }))}
+                                placeholder="0-100 (opsional)"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                style={{borderRadius: '8px'}}
+                              />
+                            </div>
                           </div>
                         </div>
                         <div className="col-md-4">
@@ -2061,7 +2107,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                               onClick={() => {
                                 setShowVariantForm(false);
                                 setEditingVariant(null);
-                                setVariantFormData({ nama_varian: '', harga: '' });
+                                setVariantFormData({ nama_varian: '', harga: '', harga_coret: '', diskon: '' });
                               }}
                               style={{backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '8px', flex: 1}}
                             >
@@ -2094,12 +2140,23 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                             <div className="card-body">
                               <h6 className="card-title fw-bold" style={{color: '#6d2316'}}>{variant.nama_varian}</h6>
                               <div className="text-muted mb-2" style={{fontSize:'0.9rem'}}>Harga: Rp {Intl.NumberFormat('id-ID').format(variant.harga || 0)}</div>
+                              {variant.harga_coret && (
+                                <div className="text-muted mb-1" style={{fontSize:'0.85rem'}}>Harga Coret: Rp {Intl.NumberFormat('id-ID').format(variant.harga_coret)}</div>
+                              )}
+                              {variant.diskon && (
+                                <div className="text-muted mb-1" style={{fontSize:'0.85rem'}}>Diskon: {variant.diskon}%</div>
+                              )}
                               <div className="d-flex gap-2">
                                 <button
                                   className="btn btn-sm fw-bold"
                                   onClick={() => {
                                     setEditingVariant(variant);
-                                    setVariantFormData({ nama_varian: variant.nama_varian, harga: variant.harga == null ? '' : formatRupiahFromNumber(variant.harga) });
+                                    setVariantFormData({ 
+                                      nama_varian: variant.nama_varian, 
+                                      harga: variant.harga == null ? '' : formatRupiahFromNumber(variant.harga),
+                                      harga_coret: variant.harga_coret == null ? '' : formatRupiahFromNumber(variant.harga_coret),
+                                      diskon: variant.diskon == null ? '' : String(variant.diskon)
+                                    });
                                     setShowVariantForm(true);
                                   }}
                                   style={{backgroundColor: '#ffc107', color: '#000', border: 'none', borderRadius: '8px'}}

@@ -899,54 +899,87 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
           <h2 className="text-center mb-5 fw-bold text-with-shadow" style={{color: 'white'}}>
             TESTIMONI
           </h2>
-          <div className="row">
+          <div style={{display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '800px', margin: '0 auto'}}>
             {testimonials.length === 0 ? (
-              <div className="text-center text-muted">Belum ada testimoni</div>
+              <div className="text-center text-muted" style={{color: 'white'}}>Belum ada testimoni</div>
             ) : (
               <>
-                {testimonials.slice(0, 6).map((t, idx) => {
-                  // Check if this is the 6th image (index 5) and there are more than 6 testimonials
-                  const isLastImageWithMore = idx === 5 && testimonials.length > 6;
-                  return (
-                    <div className="col-6 col-md-4 mb-3 mb-md-4" key={t.id}>
-                      <div className="card border-0 shadow-sm h-100" style={{cursor: 'pointer', position: 'relative', overflow: 'hidden'}} onClick={() => openTestiModal(idx)}>
-                        <img 
-                          src={getImageUrl(t.image_path)} 
-                          alt={`testimoni-${t.id}`} 
-                          className="card-img-top"
-                          style={{
-                            objectFit:'cover', 
-                            height:'220px',
-                            width: '100%'
-                          }}
-                          onError={(e)=>{ e.target.src='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="220"%3E%3Crect fill="%23f0f0f0" width="400" height="220"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3EGambar tidak ditemukan%3C/text%3E%3C/svg%3E'; }}
-                        />
-                        {isLastImageWithMore && (
-                          <div style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            <span style={{
-                              color: 'white',
-                              fontSize: 'clamp(20px, 5vw, 32px)',
-                              fontWeight: 'bold',
-                              textShadow: '0 2px 8px rgba(0,0,0,0.8)'
-                            }}>
-                              +{testimonials.length - 6}
-                            </span>
-                          </div>
-                        )}
+                {testimonials.slice(0, 3).map((t, idx) => (
+                  <div key={t.id} style={{width: '100%'}}>
+                    <div 
+                      style={{
+                        cursor: 'pointer', 
+                        overflow: 'hidden',
+                        borderRadius: '12px',
+                        backgroundColor: 'transparent',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      }} 
+                      onClick={() => openTestiModal(idx)}
+                    >
+                      <img 
+                        src={getImageUrl(t.image_path)} 
+                        alt={`testimoni-${t.id}`} 
+                        style={{
+                          objectFit:'contain', 
+                          width: '100%',
+                          height: 'auto',
+                          display: 'block',
+                          borderRadius: '12px'
+                        }}
+                        onError={(e)=>{ e.target.src='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="220"%3E%3Crect fill="%23f0f0f0" width="400" height="220"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3EGambar tidak ditemukan%3C/text%3E%3C/svg%3E'; }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {testimonials.length > 3 && (
+                  <div style={{width: '100%'}}>
+                    <div 
+                      style={{
+                        cursor: 'pointer', 
+                        overflow: 'hidden',
+                        borderRadius: '12px',
+                        backgroundColor: 'transparent',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                        position: 'relative'
+                      }} 
+                      onClick={() => openTestiModal(3)}
+                    >
+                      <img 
+                        src={getImageUrl(testimonials[3].image_path)} 
+                        alt={`testimoni-${testimonials[3].id}`} 
+                        style={{
+                          objectFit:'contain', 
+                          width: '100%',
+                          height: 'auto',
+                          display: 'block',
+                          borderRadius: '12px'
+                        }}
+                        onError={(e)=>{ e.target.src='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="220"%3E%3Crect fill="%23f0f0f0" width="400" height="220"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3EGambar tidak ditemukan%3C/text%3E%3C/svg%3E'; }}
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '12px'
+                      }}>
+                        <span style={{
+                          color: 'white',
+                          fontSize: 'clamp(24px, 5vw, 40px)',
+                          fontWeight: 'bold',
+                          textShadow: '0 2px 8px rgba(0,0,0,0.8)'
+                        }}>
+                          +{testimonials.length - 3}
+                        </span>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                )}
               </>
             )}
           </div>

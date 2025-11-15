@@ -174,6 +174,18 @@ const Pesan = () => {
     return found?.harga ?? 0;
   };
 
+  const getVariantHargaCoret = (productId, variantName) => {
+    const list = variantsByProduct[productId] || [];
+    const found = list.find(v => (v?.nama_varian || '').trim() === (variantName || '').trim());
+    return found?.harga_coret ?? null;
+  };
+
+  const getVariantDiskon = (productId, variantName) => {
+    const list = variantsByProduct[productId] || [];
+    const found = list.find(v => (v?.nama_varian || '').trim() === (variantName || '').trim());
+    return found?.diskon ?? null;
+  };
+
   const adjustVariantCount = (productId, variantName, delta) => {
     setVariantCountsByProduct((prev) => {
       const currentProduct = prev[productId] || {};
@@ -827,10 +839,33 @@ const Pesan = () => {
                         className="list-group-item d-flex align-items-center justify-content-between"
                         style={{ padding: '12px 16px' }}
                       >
-                        <div>
+                        <div style={{flex: 1}}>
                           <div style={{fontWeight: 600, color: '#6d2316'}}>{v}</div>
-                          <div className="text-muted" style={{fontSize:'0.9rem'}}>
-                            {`Harga: Rp ${Intl.NumberFormat('id-ID').format(getVariantPrice(pid, v))}`}
+                          <div className="d-flex flex-column" style={{fontSize:'0.9rem', gap: '4px'}}>
+                            {(() => {
+                              const hargaCoret = getVariantHargaCoret(pid, v);
+                              const diskon = getVariantDiskon(pid, v);
+                              if (hargaCoret || diskon) {
+                                return (
+                                  <div className="d-flex align-items-center gap-2">
+                                    {hargaCoret && (
+                                      <span style={{textDecoration: 'line-through', color: '#999', fontSize: '0.85rem'}}>
+                                        Rp {Intl.NumberFormat('id-ID').format(hargaCoret)}
+                                      </span>
+                                    )}
+                                    {diskon && (
+                                      <span style={{backgroundColor: '#dc3545', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold'}}>
+                                        -{Number.parseFloat(diskon) % 1 === 0 ? Number.parseInt(diskon, 10) : Number.parseFloat(diskon)}%
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
+                            <span className="text-muted">
+                              {`Harga: Rp ${Intl.NumberFormat('id-ID').format(getVariantPrice(pid, v))}`}
+                            </span>
                           </div>
                         </div>
                         <div className="btn-group" role="group" aria-label={`qty-${v}`}>
