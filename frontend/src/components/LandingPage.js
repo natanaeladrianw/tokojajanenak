@@ -152,6 +152,30 @@ const LandingPage = ({ products, loading, carouselImages = [] }) => {
     return () => clearInterval(id);
   }, [showPopup, popupImages]);
 
+  // Track PageView for Facebook Pixel when LandingPage mounts
+  useEffect(() => {
+    const trackPageView = () => {
+      if (window.fbq && typeof window.fbq === 'function') {
+        window.fbq('track', 'PageView');
+        console.log('Facebook Pixel PageView tracked with ID: 1283894953539476');
+      } else {
+        // Retry after a short delay if fbq is not yet loaded
+        setTimeout(() => {
+          if (window.fbq && typeof window.fbq === 'function') {
+            window.fbq('track', 'PageView');
+            console.log('Facebook Pixel PageView tracked with ID: 1283894953539476 (retry)');
+          } else {
+            console.warn('Facebook Pixel (fbq) not loaded yet');
+          }
+        }, 500);
+      }
+    };
+    
+    // Small delay to ensure pixel is loaded
+    const timer = setTimeout(trackPageView, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Handlers for swipe/drag gesture on popup image
   const beginDrag = (x) => {
     setDragStartX(x);
