@@ -853,11 +853,15 @@ const Pesan = () => {
                                         Rp {Intl.NumberFormat('id-ID').format(hargaCoret)}
                                       </span>
                                     )}
-                                    {diskon && (
-                                      <span style={{backgroundColor: '#dc3545', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold'}}>
-                                        -{Number.parseFloat(diskon) % 1 === 0 ? Number.parseInt(diskon, 10) : Number.parseFloat(diskon)}%
-                                      </span>
-                                    )}
+                                    {diskon && (() => {
+                                      const num = Number.parseFloat(diskon);
+                                      const formatted = num % 1 === 0 ? String(Math.round(num)) : String(num).replace(/\.?0+$/, '');
+                                      return (
+                                        <span style={{backgroundColor: '#dc3545', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold'}}>
+                                          -{formatted}%
+                                        </span>
+                                      );
+                                    })()}
                                   </div>
                                 );
                               }

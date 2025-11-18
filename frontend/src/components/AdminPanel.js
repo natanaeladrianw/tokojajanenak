@@ -19,6 +19,18 @@ const AdminPanel = ({ products, onUpdate, user }) => {
     const n = parseInt(digits, 10);
     return 'Rp ' + Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(n);
   };
+  // Format diskon: remove trailing zeros (3.00 -> 3, 3.50 -> 3.5, 3.05 -> 3.05)
+  const formatDiskon = (value) => {
+    if (value == null || value === '') return '';
+    // Convert to string first to preserve decimal places if input is string
+    const str = String(value);
+    const num = Number.parseFloat(str);
+    if (Number.isNaN(num)) return '';
+    // If it's a whole number, return without decimal
+    if (num % 1 === 0) return String(Math.round(num));
+    // Otherwise, remove trailing zeros but keep at least one decimal if needed
+    return String(num).replace(/\.?0+$/, '');
+  };
 
   const { toasts, showToast, removeToast } = useToast();
   
@@ -2086,11 +2098,25 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                                 type="number"
                                 className="form-control"
                                 value={variantFormData.diskon}
-                                onChange={(e) => setVariantFormData(prev => ({ ...prev, diskon: e.target.value }))}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  // Allow empty, integer, or decimal values
+                                  if (value === '' || /^\d+(\.\d*)?$/.test(value)) {
+                                    setVariantFormData(prev => ({ ...prev, diskon: value }));
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  // Format on blur: remove trailing zeros
+                                  const value = e.target.value;
+                                  if (value && !Number.isNaN(Number.parseFloat(value))) {
+                                    const formatted = formatDiskon(value);
+                                    setVariantFormData(prev => ({ ...prev, diskon: formatted }));
+                                  }
+                                }}
                                 placeholder="0-100 (opsional)"
                                 min="0"
                                 max="100"
-                                step="0.01"
+                                step="1"
                                 style={{borderRadius: '8px'}}
                               />
                             </div>
@@ -2144,7 +2170,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                                 <div className="text-muted mb-1" style={{fontSize:'0.85rem'}}>Harga Coret: Rp {Intl.NumberFormat('id-ID').format(variant.harga_coret)}</div>
                               )}
                               {variant.diskon && (
-                                <div className="text-muted mb-1" style={{fontSize:'0.85rem'}}>Diskon: {variant.diskon}%</div>
+                                <div className="text-muted mb-1" style={{fontSize:'0.85rem'}}>Diskon: {formatDiskon(variant.diskon)}%</div>
                               )}
                               <div className="d-flex gap-2">
                                 <button
@@ -2155,7 +2181,7 @@ const AdminPanel = ({ products, onUpdate, user }) => {
                                       nama_varian: variant.nama_varian, 
                                       harga: variant.harga == null ? '' : formatRupiahFromNumber(variant.harga),
                                       harga_coret: variant.harga_coret == null ? '' : formatRupiahFromNumber(variant.harga_coret),
-                                      diskon: variant.diskon == null ? '' : String(variant.diskon)
+                                      diskon: variant.diskon == null ? '' : formatDiskon(variant.diskon)
                                     });
                                     setShowVariantForm(true);
                                   }}

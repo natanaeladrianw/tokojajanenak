@@ -120,36 +120,46 @@ router.put('/varian/:id', async (req, res) => {
     // Handle harga_coret (strikethrough price)
     let { harga_coret } = req.body;
     let parsedHargaCoret = null;
-    if (harga_coret !== undefined) {
-      if (harga_coret === null || harga_coret === '') {
+    if (harga_coret !== undefined && harga_coret !== null) {
+      // Handle empty string or string 'null'
+      if (harga_coret === '' || harga_coret === 'null' || harga_coret === 'undefined') {
         parsedHargaCoret = null;
       } else {
-        parsedHargaCoret = Number.parseInt(harga_coret, 10);
+        // Convert to number (handles both string and number inputs)
+        const numValue = typeof harga_coret === 'string' ? harga_coret.trim() : String(harga_coret);
+        parsedHargaCoret = Number.parseInt(numValue, 10);
         if (Number.isNaN(parsedHargaCoret) || parsedHargaCoret < 0) {
           return res.status(400).json({ error: 'Harga coret tidak valid' });
         }
       }
+    } else if (harga_coret === null) {
+      parsedHargaCoret = null;
     }
     
     // Handle diskon (discount percentage)
     let { diskon } = req.body;
     let parsedDiskon = null;
-    if (diskon !== undefined) {
-      if (diskon === null || diskon === '') {
+    if (diskon !== undefined && diskon !== null) {
+      // Handle empty string or string 'null'
+      if (diskon === '' || diskon === 'null' || diskon === 'undefined') {
         parsedDiskon = null;
       } else {
-        parsedDiskon = Number.parseFloat(diskon, 10);
+        // Convert to number (handles both string and number inputs)
+        const numValue = typeof diskon === 'string' ? diskon.trim() : String(diskon);
+        parsedDiskon = Number.parseFloat(numValue, 10);
         if (Number.isNaN(parsedDiskon) || parsedDiskon < 0 || parsedDiskon > 100) {
           return res.status(400).json({ error: 'Diskon tidak valid (harus antara 0-100)' });
         }
       }
+    } else if (diskon === null) {
+      parsedDiskon = null;
     }
     
     // Build update query dynamically
     const updates = ['nama_varian = ?'];
     const values = [nama_varian.trim()];
     
-    if (parsedHarga !== null) {
+    if (harga !== undefined) {
       updates.push('harga = ?');
       values.push(parsedHarga);
     }
@@ -166,10 +176,11 @@ router.put('/varian/:id', async (req, res) => {
     
     values.push(id);
     
-    await pool.execute(
-      `UPDATE varian SET ${updates.join(', ')} WHERE id = ?`,
-      values
-    );
+    const query = `UPDATE varian SET ${updates.join(', ')} WHERE id = ?`;
+    console.log('Updating variant:', { id, query, values });
+    
+    const [result] = await pool.execute(query, values);
+    console.log('Update result:', { affectedRows: result.affectedRows, changedRows: result.changedRows });
 
     res.json({ success: true });
   } catch (error) {
