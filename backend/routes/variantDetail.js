@@ -120,28 +120,40 @@ router.put('/varian/:id', async (req, res) => {
     // Handle harga_coret (strikethrough price)
     let { harga_coret } = req.body;
     let parsedHargaCoret = null;
-    if (harga_coret !== undefined && harga_coret !== null) {
-      // Handle empty string or string 'null'
-      if (harga_coret === '' || harga_coret === 'null' || harga_coret === 'undefined') {
+    let shouldUpdateHargaCoret = false;
+    
+    // Check if harga_coret is explicitly provided in request
+    if (harga_coret !== undefined) {
+      shouldUpdateHargaCoret = true;
+      // Handle empty string, null, or string 'null'
+      if (harga_coret === '' || harga_coret === null || harga_coret === 'null' || harga_coret === 'undefined') {
         parsedHargaCoret = null;
       } else {
         // Convert to number (handles both string and number inputs)
         const numValue = typeof harga_coret === 'string' ? harga_coret.trim() : String(harga_coret);
-        parsedHargaCoret = Number.parseInt(numValue, 10);
-        if (Number.isNaN(parsedHargaCoret) || parsedHargaCoret < 0) {
-          return res.status(400).json({ error: 'Harga coret tidak valid' });
+        // Remove currency formatting if present (Rp, dots, commas)
+        const cleanValue = numValue.replace(/[^\d]/g, '');
+        if (cleanValue === '') {
+          parsedHargaCoret = null;
+        } else {
+          parsedHargaCoret = Number.parseInt(cleanValue, 10);
+          if (Number.isNaN(parsedHargaCoret) || parsedHargaCoret < 0) {
+            return res.status(400).json({ error: 'Harga coret tidak valid' });
+          }
         }
       }
-    } else if (harga_coret === null) {
-      parsedHargaCoret = null;
     }
     
     // Handle diskon (discount percentage)
     let { diskon } = req.body;
     let parsedDiskon = null;
-    if (diskon !== undefined && diskon !== null) {
-      // Handle empty string or string 'null'
-      if (diskon === '' || diskon === 'null' || diskon === 'undefined') {
+    let shouldUpdateDiskon = false;
+    
+    // Check if diskon is explicitly provided in request
+    if (diskon !== undefined) {
+      shouldUpdateDiskon = true;
+      // Handle empty string, null, or string 'null'
+      if (diskon === '' || diskon === null || diskon === 'null' || diskon === 'undefined') {
         parsedDiskon = null;
       } else {
         // Convert to number (handles both string and number inputs)
@@ -151,8 +163,6 @@ router.put('/varian/:id', async (req, res) => {
           return res.status(400).json({ error: 'Diskon tidak valid (harus antara 0-100)' });
         }
       }
-    } else if (diskon === null) {
-      parsedDiskon = null;
     }
     
     // Build update query dynamically
@@ -164,25 +174,62 @@ router.put('/varian/:id', async (req, res) => {
       values.push(parsedHarga);
     }
     
-    if (harga_coret !== undefined) {
+    // Use the flag to determine if we should update harga_coret
+    if (shouldUpdateHargaCoret) {
       updates.push('harga_coret = ?');
       values.push(parsedHargaCoret);
     }
     
-    if (diskon !== undefined) {
+    // Use the flag to determine if we should update diskon
+    if (shouldUpdateDiskon) {
       updates.push('diskon = ?');
       values.push(parsedDiskon);
     }
     
     values.push(id);
     
-    const query = `UPDATE varian SET ${updates.join(', ')} WHERE id = ?`;
-    console.log('Updating variant:', { id, query, values });
+    // Ensure we have at least one field to update besides nama_varian
+    if (updates.length === 1) {
+      return res.status(400).json({ error: 'Tidak ada field yang diupdate' });
+    }
     
+    const query = `UPDATE varian SET ${updates.join(', ')} WHERE id = ?`;
+    
+    // Detailed logging for debugging
+    console.log('=== VARIANT UPDATE REQUEST ===');
+    console.log('ID:', id);
+    console.log('Request Body:', JSON.stringify(req.body, null, 2));
+    console.log('Parsed Values:', {
+      nama_varian: nama_varian.trim(),
+      harga: parsedHarga,
+      harga_coret: { original: harga_coret, parsed: parsedHargaCoret, shouldUpdate: shouldUpdateHargaCoret },
+      diskon: { original: diskon, parsed: parsedDiskon, shouldUpdate: shouldUpdateDiskon }
+    });
+    console.log('SQL Query:', query);
+    console.log('SQL Values:', JSON.stringify(values, null, 2));
+    
+    // Execute the update
     const [result] = await pool.execute(query, values);
-    console.log('Update result:', { affectedRows: result.affectedRows, changedRows: result.changedRows });
+    
+    console.log('Update Execution Result:', {
+      affectedRows: result.affectedRows,
+      changedRows: result.changedRows,
+      insertId: result.insertId,
+      warningCount: result.warningCount
+    });
+    
+    // Verify the update by fetching the updated record
+    const [updated] = await pool.execute('SELECT * FROM varian WHERE id = ?', [id]);
+    
+    if (updated.length === 0) {
+      console.error('ERROR: Variant not found after update!');
+      return res.status(404).json({ error: 'Varian tidak ditemukan setelah update' });
+    }
+    
+    console.log('Updated Variant Data:', JSON.stringify(updated[0], null, 2));
+    console.log('=== END VARIANT UPDATE ===');
 
-    res.json({ success: true });
+    res.json({ success: true, data: updated[0] });
   } catch (error) {
     console.error('Error updating variant:', error);
     res.status(500).json({ error: error.message });

@@ -657,12 +657,17 @@ const AdminPanel = ({ products, onUpdate, user }) => {
           showToast('Tidak ada yang diperbarui. Ubah nama varian, harga, harga coret, atau diskon.', 'error');
           return;
         }
-        await apiClient.put(`/api/varian/${editingVariant.id}`, {
+        // Ensure we always send harga_coret and diskon, even if null
+        const updateData = {
           nama_varian: newName,
-          harga: newPrice,
-          harga_coret: newHargaCoret,
-          diskon: newDiskon
-        });
+          harga: newPrice !== undefined ? newPrice : null,
+          harga_coret: newHargaCoret !== undefined ? newHargaCoret : null,
+          diskon: newDiskon !== undefined ? newDiskon : null
+        };
+        
+        console.log('Sending variant update:', updateData);
+        
+        await apiClient.put(`/api/varian/${editingVariant.id}`, updateData);
         showToast('Varian berhasil diupdate!', 'success');
       } else {
         await apiClient.post('/api/varian', {
